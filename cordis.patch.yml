@@ -1,0 +1,5 @@
+# dsh-skill-pin — one host row, no client half, no dependencies.
+- insert:
+    - id: dsh-skill-pin
+      name: 'dsh-skill-pin'
+      config: {}

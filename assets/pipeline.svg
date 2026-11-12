@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="430" viewBox="0 0 1200 430" role="img" aria-label="dsh-skill-pin decision pipeline">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f1216"/>
+      <stop offset="1" stop-color="#161c22"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7cd4a8"/>
+      <stop offset="1" stop-color="#4ea3ff"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#556472"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="430" fill="url(#bg)"/>
+  <rect x="0.5" y="0.5" width="1199" height="429" fill="none" stroke="#242c34"/>
+
+  <text x="40" y="52" fill="#8b9aa8" font-family="ui-sans-serif, -apple-system, Segoe UI, sans-serif" font-size="13" letter-spacing="2">DSH-SKILL-PIN · DECISION PIPELINE</text>
+  <rect x="40" y="66" width="60" height="3" rx="1.5" fill="url(#accent)"/>
+
+  <!-- Box 1 -->
+  <g>
+    <rect x="40" y="120" width="250" height="130" rx="12" fill="#1b222a" stroke="#2b3540"/>
+    <text x="60" y="152" fill="#8b9aa8" font-family="ui-monospace, Consolas, monospace" font-size="11">session.log</text>
+    <text x="60" y="186" fill="#e8eef4" font-family="ui-sans-serif, -apple-system, Segoe UI, sans-serif" font-size="16" font-weight="600">tool/call</text>
+    <text x="60" y="210" fill="#a9b6c2" font-family="ui-sans-serif, -apple-system, Segoe UI, sans-serif" font-size="13">name = "skill"</text>
+    <text x="60" y="232" fill="#6f7d8a" font-family="ui-sans-serif, -apple-system, Segoe UI, sans-serif" font-size="11">names only, never the whole catalog</text>
+  </g>
+
+  <line x1="295" y1="185" x2="345" y2="185" stroke="#556472" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Box 2 -->
+  <g>
+    <rect x="350" y="120" width="230" height="130" rx="12" fill="#1b222a" stroke="#2b3540"/>
+    <text x="370" y="152" fill="#8b9aa8" font-family="ui-monospace, Consolas, monospace" font-size="11">ledger</text>
+    <text x="370" y="186" fill="#e8eef4" font-family="ui-sans-serif, -apple-system, Segoe UI, sans-serif" font-size="16" font-weight="600">loaded set</text>
+    <text x="370" y="210" fill="#a9b6c2" font-family="ui-sans-serif, -apple-system, Segoe UI, sans-serif" font-size="13">derived, incremental</text>
+    <text x="370" y="232" fill="#6f7d8a" font-family="ui-sans-serif, -apple-system, Segoe UI, sans-serif" font-size="11">recomputed from the log, never stored</text>
+  </g>
+
+  <line x1="585" y1="185" x2="635" y2="185" stroke="#556472" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Box 3 -->
+  <g>
+    <rect x="640" y="120" width="270" height="130" rx="12" fill="#1b222a" stroke="#2b3540"/>
+    <text x="660" y="152" fill="#8b9aa8" font-family="ui-monospace, Consolas, monospace" font-size="11">surface</text>
+    <text x="660" y="186" fill="#e8eef4" font-family="ui-sans-serif, -apple-system, Segoe UI, sans-serif" font-size="16" font-weight="600">body still visible?</text>
+    <text x="660" y="210" fill="#a9b6c2" font-family="ui-sans-serif, -apple-system, Segoe UI, sans-serif" font-size="13">&lt;skill_content name="…"&gt;</text>
+    <text x="660" y="232" fill="#6f7d8a" font-family="ui-sans-serif, -apple-system, Segoe UI, sans-serif" font-size="11">unreadable surface means: do nothing</text>
+  </g>
+
+  <!-- Visible branch (up-right) -->
+  <line x1="915" y1="160" x2="985" y2="118" stroke="#556472" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <g>
+    <rect x="990" y="66" width="170" height="86" rx="12" fill="#16241d" stroke="#2f4a3b"/>
+    <text x="1010" y="98" fill="#7cd4a8" font-family="ui-sans-serif, -apple-system, Segoe UI, sans-serif" font-size="15" font-weight="600">stay quiet</text>
+    <text x="1010" y="120" fill="#8fa79a" font-family="ui-sans-serif, -apple-system, Segoe UI, sans-serif" font-size="12">the model already has it</text>
+    <text x="1010" y="140" fill="#6f8a7c" font-family="ui-monospace, Consolas, monospace" font-size="11">no token spent</text>
+  </g>
+
+  <!-- Gone branch (down-right) -->
+  <line x1="915" y1="215" x2="985" y2="258" stroke="#556472" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <g>
+    <rect x="990" y="226" width="170" height="112" rx="12" fill="#241f16" stroke="#4a3f2f"/>
+    <text x="1010" y="258" fill="#e7c27a" font-family="ui-sans-serif, -apple-system, Segoe UI, sans-serif" font-size="15" font-weight="600">re-inject</text>
+    <text x="1010" y="280" fill="#b9a684" font-family="ui-sans-serif, -apple-system, Segoe UI, sans-serif" font-size="12">ctx.skills.get(name)</text>
+    <text x="1010" y="298" fill="#b9a684" font-family="ui-sans-serif, -apple-system, Segoe UI, sans-serif" font-size="12">original body, from disk</text>
+    <text x="1010" y="320" fill="#94856c" font-family="ui-monospace, Consolas, monospace" font-size="11">agent/pre-step</text>
+  </g>
+
+  <!-- Trigger strip -->
+  <g>
+    <text x="40" y="330" fill="#8b9aa8" font-family="ui-sans-serif, -apple-system, Segoe UI, sans-serif" font-size="12" letter-spacing="1">WHEN IT FIRES</text>
+    <rect x="40" y="344" width="410" height="46" rx="10" fill="#1b222a" stroke="#2b3540"/>
+    <text x="60" y="373" fill="#c7d2dc" font-family="ui-sans-serif, -apple-system, Segoe UI, sans-serif" font-size="13">compaction shadowed the block, or the pruner cut its middle</text>
+  </g>
+  <g>
+    <text x="470" y="330" fill="#8b9aa8" font-family="ui-sans-serif, -apple-system, Segoe UI, sans-serif" font-size="12" letter-spacing="1">WHEN IT STAYS SILENT</text>
+    <rect x="470" y="344" width="470" height="46" rx="10" fill="#1b222a" stroke="#2b3540"/>
+    <text x="490" y="373" fill="#c7d2dc" font-family="ui-sans-serif, -apple-system, Segoe UI, sans-serif" font-size="13">skill never loaded · body intact · same-step pin already queued</text>
+  </g>
+</svg>

@@ -1,0 +1,47 @@
+{
+  "name": "dsh-skill-pin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Re-injects the skills a session already loaded after context compaction removes their instructions.",
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "skills",
+    "compaction",
+    "context"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LBM-OASIG/dsh-skill-pin.git"
+  },
+  "homepage": "https://github.com/LBM-OASIG/dsh-skill-pin#readme",
+  "bugs": "https://github.com/LBM-OASIG/dsh-skill-pin/issues",
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "assets/pipeline.svg",
+    "README.md",
+    "README.en.md"
+  ],
+  "scripts": {
+    "test": "node --test test/unit.test.mjs"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "engines": {
+      "dsh": ">=0.2.0"
+    }
+  }
+}

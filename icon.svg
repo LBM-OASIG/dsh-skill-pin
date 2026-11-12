@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Skill pin">
+  <rect width="64" height="64" rx="14" fill="#101418"/>
+  <path d="M40.5 14.5l9 9-6.2 2.1-4.9 4.9 1.5 7.1-4.2 4.2-8.2-8.2 4.2-4.2 7.1 1.5 4.9-4.9z" fill="#7cd4a8"/>
+  <path d="M27.5 36.5L15 49" stroke="#e8eef2" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="19" cy="26" r="3" fill="#e8eef2" opacity="0.55"/>
+</svg>

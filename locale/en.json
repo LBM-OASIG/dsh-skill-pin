@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Skill pin",
+    "description": "Restores the instructions of skills this session already loaded when context compaction removes them."
+  }
+}
