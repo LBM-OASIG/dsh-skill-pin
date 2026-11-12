@@ -11,8 +11,9 @@
  * visible.
  *
  * Zero package dependencies on purpose: the plugin only reads Cordis events,
- * `ctx.skills`, `ctx.workingDirectory`, and plain Session data. State is a
- * derived cache keyed by Session; the log stays the source of truth.
+ * the injected `skills` service, an optional `workingDirectory` lookup, and
+ * plain Session data. State is a derived cache keyed by Session; the log stays
+ * the source of truth.
  */
 
 export const name = 'dsh-skill-pin';
@@ -41,57 +42,51 @@ export function apply(ctx, config) {
   /** session -> incremental scan cursor + loaded skill names (derived cache). */
   const ledger = new WeakMap();
 
-  const stateFor = (session) => {
-    let state = ledger.get(session);
-    if (state === undefined) {
-      state = { scanned: 0, names: new Set() };
-      ledger.set(session, state);
-    }
-    return state;
-  };
-
-  ctx.on('agent/pre-step', async ({ agent, signal }, next) => {
+  ctx.on('agent/pre-step', async (payload, next) => {
     const decision = await next();
     if (decision === undefined || decision.kind === 'reject') return decision;
-    if (!cfg.enabled) return decision;
-
-    const session = agent?.session;
-    if (session === undefined) return decision;
-    if (typeof ctx.skills?.get !== 'function') return decision;
-
-    const state = stateFor(session);
-    scanLogForLoadedSkills(session, state);
-    if (state.names.size === 0) return decision;
-
-    // A pin we already added to this step's batch means the body is arriving
-    // right now; the durable surface only catches up after the step commits.
-    if ((decision.messages ?? []).some((message) => message?.source?.kind === 'skill-pin')) return decision;
-
-    const bodies = scanSurfaceBodies(session);
-    if (bodies === undefined) return decision; // unreadable surface: never guess
-
-    const wanted = [...state.names]
-      .filter((name) => cfg.allowSkills.length === 0 || cfg.allowSkills.includes(name))
-      .filter((name) => !cfg.denySkills.includes(name))
-      .filter((name) => bodies.get(name) !== 'intact')
-      .slice(0, cfg.maxSkills);
-
-    if (wanted.length === 0) return decision;
-
-    const cwd = session.header?.cwd;
-    let resolvedCwd = cwd;
-    if (typeof ctx.workingDirectory?.ensure === 'function') {
-      try {
-        resolvedCwd = await ctx.workingDirectory.ensure(agent, signal);
-      } catch {
-        resolvedCwd = cwd;
-      }
+    try {
+      return await restoreMissingSkills(ctx, cfg, ledger, payload, decision);
+    } catch (error) {
+      // A pre-step listener must never fail the turn: a broken lookup or an
+      // unavailable service just leaves the host decision untouched.
+      ctx.logger?.warn?.('dsh-skill-pin: restore skipped: %o', error);
+      return decision;
     }
-    const lookup = {
-      ...(resolvedCwd === undefined ? {} : { cwd: resolvedCwd }),
-      signal,
-      scope: agent,
-    };
+  });
+}
+
+async function restoreMissingSkills(ctx, cfg, ledger, { agent, signal }, decision) {
+  if (!cfg.enabled) return decision;
+
+  const session = agent?.session;
+  if (session === undefined) return decision;
+  if (typeof ctx.skills?.get !== 'function') return decision;
+
+  const state = stateFor(ledger, session);
+  scanLogForLoadedSkills(session, state);
+  if (state.names.size === 0) return decision;
+
+  // A pin we already added to this step's batch means the body is arriving
+  // right now; the durable surface only catches up after the step commits.
+  if ((decision.messages ?? []).some((message) => message?.source?.kind === 'skill-pin')) return decision;
+
+  const bodies = scanSurfaceBodies(session);
+  if (bodies === undefined) return decision; // unreadable surface: never guess
+
+  const wanted = [...state.names]
+    .filter((name) => cfg.allowSkills.length === 0 || cfg.allowSkills.includes(name))
+    .filter((name) => !cfg.denySkills.includes(name))
+    .filter((name) => bodies.get(name) !== 'intact')
+    .slice(0, cfg.maxSkills);
+
+  if (wanted.length === 0) return decision;
+
+  const lookup = {
+    ...(await resolveCwd(ctx, agent, session, signal) ?? {}),
+    signal,
+    scope: agent,
+  };
 
     const messages = [];
     let total = 0;
@@ -118,14 +113,47 @@ export function apply(ctx, config) {
       messages.push(makePinMessage(agent, skill, body, truncated, cfg));
     }
 
-    if (messages.length === 0) return decision;
-    ctx.logger?.info?.(
-      'dsh-skill-pin: re-injected %d skill(s) after compaction: %s',
-      messages.length,
-      wanted.join(', '),
-    );
-    return { ...decision, messages: [...decision.messages, ...messages] };
-  });
+  if (messages.length === 0) return decision;
+  ctx.logger?.info?.(
+    'dsh-skill-pin: re-injected %d skill(s) after compaction: %s',
+    messages.length,
+    wanted.join(', '),
+  );
+  return { ...decision, messages: [...decision.messages, ...messages] };
+}
+
+function stateFor(ledger, session) {
+  let state = ledger.get(session);
+  if (state === undefined) {
+    state = { scanned: 0, names: new Set() };
+    ledger.set(session, state);
+  }
+  return state;
+}
+
+/**
+ * cwd for the skill registry lookup: the live working directory when that
+ * service is reachable, otherwise the session header. Never throws — a
+ * undeclared service on a Cordis context throws on property access, so the
+ * whole probe stays inside try/catch.
+ */
+async function resolveCwd(ctx, agent, session, signal) {
+  let workingDirectory;
+  try {
+    workingDirectory = typeof ctx.get === 'function' ? ctx.get('workingDirectory') : undefined;
+  } catch {
+    workingDirectory = undefined;
+  }
+  if (typeof workingDirectory?.ensure === 'function') {
+    try {
+      const cwd = await workingDirectory.ensure(agent, signal);
+      if (typeof cwd === 'string' && cwd.length > 0) return { cwd };
+    } catch {
+      // fall through to the session header
+    }
+  }
+  const cwd = session?.header?.cwd;
+  return typeof cwd === 'string' && cwd.length > 0 ? { cwd } : {};
 }
 
 /* ------------------------------------------------------------------ *

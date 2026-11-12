@@ -12,7 +12,7 @@
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-2ea44f?style=flat-square" /></a>
   <img alt="DeepSeek Harness" src="https://img.shields.io/badge/DeepSeek%20Harness-0.2.0%2B-111?style=flat-square" />
-  <img alt="Tests" src="https://img.shields.io/badge/tests-20%20passing-brightgreen?style=flat-square" />
+  <img alt="Tests" src="https://img.shields.io/badge/tests-23%20passing-brightgreen?style=flat-square" />
   <img alt="Dependencies" src="https://img.shields.io/badge/runtime%20deps-0-blue?style=flat-square" />
 </p>
 
@@ -121,7 +121,7 @@ dsh plugin --profile desktop add link:<克隆出来的绝对路径>
 npm test
 ```
 
-20 例，覆盖：日志增量扫描（含 fork 后重扫）、可见层三态、同一步去重、单技能截断、总预算、allow/deny、注册表里已不存在的 skill、以及「压缩吞掉钉子后再次补注」的完整往返。
+23 例，覆盖：日志增量扫描（含 fork 后重扫）、可见层三态、同一步去重、单技能截断、总预算、allow/deny、注册表里已不存在的 skill、「压缩吞掉钉子后再次补注」的完整往返，以及服务访问的回归（未声明的 Cordis 服务一律不碰、`workingDirectory` 不可用时回退会话 cwd、注册表抛错也不让本轮失败）。
 
 真机试过的部分：
 
@@ -148,7 +148,7 @@ cordis.patch.yml    bundle 的插入行
 locale/{en,zh}.json 插件面板里的标题与描述
 icon.svg            图标
 assets/pipeline.svg 流程图
-test/unit.test.mjs  20 例单元测试
+test/unit.test.mjs  23 例单元测试
 ```
 
 ## License

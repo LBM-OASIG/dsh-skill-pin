@@ -52,6 +52,9 @@ function makeCtx(skills = {}) {
       info: (...args) => logs.push(['info', args]),
       warn: (...args) => logs.push(['warn', args]),
     },
+    get() {
+      return undefined;
+    },
     skills: {
       async get(name) {
         return skills[name];
@@ -315,4 +318,86 @@ test('re-injects again after a later compaction removes the pin', async () => {
   session.surface.nodes = [0];
   const third = await preStep(handlers, wire(session));
   assert.equal(third.messages.length, 1);
+});
+
+/* ------------------------------------------------------------------ *
+ * Service access regressions
+ * ------------------------------------------------------------------ */
+
+/** Mimic a Cordis context: reading an undeclared service throws. */
+function makeStrictCtx(base) {
+  return new Proxy(base, {
+    get(target, property) {
+      if (property in target) return target[property];
+      throw new Error(`cannot get property "${String(property)}" without inject`);
+    },
+  });
+}
+
+test('never touches an undeclared service (strict Cordis context)', async () => {
+  const events = [toolCall(0, 'skill', { name: 'unslop' })];
+  const skillBox = { unslop: skill('unslop', 'FULL BODY') };
+  const base = {
+    on(type, handler) {
+      base.handlers = base.handlers ?? new Map();
+      base.handlers.set(type, handler);
+      return () => {};
+    },
+    logger: { info() {}, warn() {} },
+    skills: { async get(name) { return skillBox[name]; } },
+    get(name) {
+      if (name !== 'workingDirectory') throw new Error(`unknown service ${name}`);
+      return undefined;
+    },
+  };
+  apply(makeStrictCtx(base), {});
+  const out = await preStep(base.handlers, wire(makeSession(events)));
+  assert.equal(out.messages.length, 1);
+  assert.match(out.messages[0].content[0].text, /FULL BODY/);
+});
+
+test('falls back to the session cwd when workingDirectory.ensure throws', async () => {
+  const events = [toolCall(0, 'skill', { name: 'unslop' })];
+  const base = {
+    on(type, handler) {
+      base.handlers = base.handlers ?? new Map();
+      base.handlers.set(type, handler);
+      return () => {};
+    },
+    logger: { info() {}, warn() {} },
+    skills: { async get() { return skill('unslop', 'BODY'); } },
+    get(name) {
+      return name === 'workingDirectory'
+        ? { async ensure() { throw new Error('cwd unavailable'); } }
+        : undefined;
+    },
+  };
+  apply(base, {});
+  const captured = [];
+  const original = base.skills.get;
+  base.skills.get = async (name, lookup) => {
+    captured.push(lookup);
+    return original();
+  };
+  const out = await preStep(base.handlers, wire(makeSession(events)));
+  assert.equal(out.messages.length, 1);
+  assert.equal(captured[0].cwd, 'C:/work');
+});
+
+test('a failing skill lookup never fails the turn', async () => {
+  const events = [toolCall(0, 'skill', { name: 'unslop' })];
+  const base = {
+    on(type, handler) {
+      base.handlers = base.handlers ?? new Map();
+      base.handlers.set(type, handler);
+      return () => {};
+    },
+    logger: { info() {}, warn() {} },
+    skills: { async get() { throw new Error('registry exploded'); } },
+    get() { return undefined; },
+  };
+  apply(base, {});
+  const decision = { kind: 'enter', messages: [] };
+  const out = await preStep(base.handlers, wire(makeSession(events)), decision);
+  assert.equal(out, decision);
 });

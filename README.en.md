@@ -12,7 +12,7 @@
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-2ea44f?style=flat-square" /></a>
   <img alt="DeepSeek Harness" src="https://img.shields.io/badge/DeepSeek%20Harness-0.2.0%2B-111?style=flat-square" />
-  <img alt="Tests" src="https://img.shields.io/badge/tests-20%20passing-brightgreen?style=flat-square" />
+  <img alt="Tests" src="https://img.shields.io/badge/tests-23%20passing-brightgreen?style=flat-square" />
   <img alt="Dependencies" src="https://img.shields.io/badge/runtime%20deps-0-blue?style=flat-square" />
 </p>
 
@@ -99,7 +99,7 @@ Existing plugins can inject configured files into context on every session start
 npm test
 ```
 
-20 cases: incremental log scan (including a fork re-scan), the three surface states, same-step de-duplication, per-skill truncation, total budget, allow/deny, a skill the registry no longer knows, and the full round trip after a compaction removes a pin.
+23 cases: incremental log scan (including a fork re-scan), the three surface states, same-step de-duplication, per-skill truncation, total budget, allow/deny, a skill the registry no longer knows, the full round trip after a compaction removes a pin, and service-access regressions (never touching an undeclared Cordis service, falling back to the session cwd when `workingDirectory` is unavailable, and a throwing registry never failing the turn).
 
 Also observed on a live harness: the row activates, the scan picks up the skill loaded in the real session log, and the plugin stays silent while the body is still visible.
 
