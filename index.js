@@ -82,36 +82,37 @@ async function restoreMissingSkills(ctx, cfg, ledger, { agent, signal }, decisio
 
   if (wanted.length === 0) return decision;
 
+
   const lookup = {
     ...(await resolveCwd(ctx, agent, session, signal) ?? {}),
     signal,
     scope: agent,
   };
 
-    const messages = [];
-    let total = 0;
-    for (const name of wanted) {
-      signal?.throwIfAborted?.();
-      let skill;
-      try {
-        skill = await ctx.skills.get(name, lookup);
-      } catch (error) {
-        ctx.logger?.warn?.('dsh-skill-pin: lookup for "%s" failed: %o', name, error);
-        continue;
-      }
-      if (skill === undefined) continue;
-
-      const raw = typeof skill.content === 'string' ? skill.content : '';
-      if (raw.length === 0) continue;
-
-      const perSkill = Math.max(1, cfg.maxCharsPerSkill);
-      const truncated = raw.length > perSkill;
-      const body = truncated ? raw.slice(0, perSkill) : raw;
-      if (total + body.length > cfg.maxTotalChars) continue;
-      total += body.length;
-
-      messages.push(makePinMessage(agent, skill, body, truncated, cfg));
+  const messages = [];
+  let total = 0;
+  for (const name of wanted) {
+    signal?.throwIfAborted?.();
+    let skill;
+    try {
+      skill = await ctx.skills.get(name, lookup);
+    } catch (error) {
+      ctx.logger?.warn?.('dsh-skill-pin: lookup for "%s" failed: %o', name, error);
+      continue;
     }
+    if (skill === undefined) continue;
+
+    const raw = typeof skill.content === 'string' ? skill.content : '';
+    if (raw.length === 0) continue;
+
+    const perSkill = Math.max(1, cfg.maxCharsPerSkill);
+    const truncated = raw.length > perSkill;
+    const body = truncated ? raw.slice(0, perSkill) : raw;
+    if (total + body.length > cfg.maxTotalChars) continue;
+    total += body.length;
+
+    messages.push(makePinMessage(agent, skill, body, truncated, cfg));
+  }
 
   if (messages.length === 0) return decision;
   ctx.logger?.info?.(
